@@ -60,6 +60,15 @@
   [high low f-init f-close]
   (atom (mk-pool* high low f-init f-close)))
 
+(defn shutdown-pool*
+  [{:keys [resources close]}]
+  (when close
+    (dorun (map #(close (:resource %)) resources))))
+
+(defn shutdown-pool
+  [ref-pool]
+  (shutdown-pool* @ref-pool))
+
 (defmacro with-resource
   "Get a resource from a pool, bind it to res-name, so you can use it in body,
    after body finish, the resource will be returned to the pool."
