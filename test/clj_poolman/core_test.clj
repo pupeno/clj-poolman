@@ -3,16 +3,16 @@
   (:use [clojure.test]))
 
 (deftest finding-next-id
-  (are [pool expected] (= (next-id pool) expected)
-       {:resources nil} 0
-       {:resources #{{:id 0} {:id 1} {:id 2}}} 3
-       {:resources #{{:id 0} {:id 4}}} 1))
+  (are [res expected] (= (next-id res) expected)
+       nil 0
+       #{{:id 0} {:id 1} {:id 2}} 3
+       #{{:id 0} {:id 4}} 1))
 
 (deftest initing
   (let [init (fn [] "ok")]
-    (is (= (mk-pool 5 3 init)
+    (is (= (mk-pool 5 3 init nil)
 	 {:resources #{{:id 2 :resource "ok"} {:id 1 :resource "ok"} {:id 0 :resource "ok"}}
-	  :high 5 :low 3 :init init}))))
+	  :high 5 :low 3 :init init :close nil}))))
 
 (deftest getting-resource
   (let [init (fn [] "ok")]
@@ -25,12 +25,11 @@
 	 {:resources #{{:id 0 :resource "ok" :busy true}} :high 1}
 	 [{:resources #{{:id 0 :resource "ok" :busy true}} :high 1} nil])))
 
-(comment
 (deftest releasing
   (are [pool expected] (= (release-resource pool {:id 0, :resource "ok"}) expected)
-       {:resources [] :busies [{:id 0 :resource "ok"}] :low 1}
-       {:resources [{:id 0 :resource "ok"}] :low 1}
-       {:resources [] :busies [{:id 0 :resource "ok"}] :low 0}
-       {:low 0})))
+       {:resources #{{:id 0 :resource "ok" :busy true}} :low 1}
+       {:resources #{{:id 0 :resource "ok"}} :low 1}
+       {:resources #{{:id 0 :resource "ok" :busy true}} :low 0}
+       {:resources #{} :low 0}))
        
        
