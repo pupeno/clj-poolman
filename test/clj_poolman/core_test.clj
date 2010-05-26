@@ -10,7 +10,7 @@
 
 (deftest initing
   (let [init (fn [] "ok")]
-    (is (= (mk-pool 5 3 init nil)
+    (is (= (mk-pool* 5 3 init nil)
 	 {:resources #{{:id 2 :resource "ok"} {:id 1 :resource "ok"} {:id 0 :resource "ok"}}
 	  :high 5 :low 3 :init init :close nil}))))
 

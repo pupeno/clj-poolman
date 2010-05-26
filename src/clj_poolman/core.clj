@@ -18,7 +18,7 @@
 
 (defstruct resource-pool :init :close :low :high :resources)
 	 
-(defn mk-pool
+(defn mk-pool*
   "Make a new resource pool where high for high watermark, low for low watermark,
    f-init is a function without argument to open a new resource,
    f-close is a function which take resource as a argument and do something to release the resource,
@@ -52,3 +52,17 @@
 		     resources)
 		   (conj resources resource))]
     (assoc pool :resources resources)))
+
+(defn mk-pool
+  [high low f-init f-close]
+  (atom (mk-pool* high low f-init f-close)))
+
+(defmacro with-resource
+  [[res-name ref-pool] & body]
+  `(let [[new-pool# resource#] (get-resource (deref ~ref-pool))]
+     (reset! ~ref-pool new-pool#)
+     (try
+      (let [~res-name (:resource resource#)]
+	(do ~@body))
+      (finally
+       (reset! ~ref-pool (release-resource (deref ~ref-pool) resource#))))))
