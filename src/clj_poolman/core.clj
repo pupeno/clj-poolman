@@ -28,6 +28,7 @@
     (reduce (fn [p _] (assoc-new-resource p)) pool (range low))))
 
 (defn get-resource
+  "Low level resource getting process. Use with-resource macro instead."
   [{:keys [init high resources] :as pool}]
   (let [free-resources (filter #(not (:busy %)) resources)
 	resource (if (seq free-resources)
@@ -42,6 +43,7 @@
     [pool resource]))
     
 (defn release-resource
+  "Low level resource releasing. Use with-resource macro instead."
   [{:keys [low close resources] :as pool} {res-id :id :as resource}]
   (let [busy-resource (first (filter #(= (:id %) res-id) resources))
 	resources (-> resources (disj busy-resource))
@@ -54,10 +56,13 @@
     (assoc pool :resources resources)))
 
 (defn mk-pool
+  "Make a mutable resource pool."
   [high low f-init f-close]
   (atom (mk-pool* high low f-init f-close)))
 
 (defmacro with-resource
+  "Get a resource from a pool, bind it to res-name, so you can use it in body,
+   after body finish, the resource will be returned to the pool."
   [[res-name ref-pool] & body]
   `(let [[new-pool# resource#] (get-resource (deref ~ref-pool))]
      (reset! ~ref-pool new-pool#)
