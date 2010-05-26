@@ -24,6 +24,7 @@
    f-close is a function which take resource as a argument and do something to release the resource,
    the return value of f-close will be ignored"
   [high low f-init f-close]
+  {:pre [(>= high low) f-init]}
   (let [pool (struct resource-pool f-init f-close low high #{})]
     (reduce (fn [p _] (assoc-new-resource p)) pool (range low))))
 
@@ -61,11 +62,13 @@
   (atom (mk-pool* high low f-init f-close)))
 
 (defn shutdown-pool*
+  "Intenal function, to shutdown a resource pool."
   [{:keys [resources close]}]
   (when close
     (dorun (map #(close (:resource %)) resources))))
 
 (defn shutdown-pool
+  "Shutdown a mutable resource pool"
   [ref-pool]
   (shutdown-pool* @ref-pool))
 
